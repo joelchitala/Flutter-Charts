@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_charts/charts/donut_chart.dart';
 import 'package:flutter_charts/charts/gap_pie_chart/dataset.dart';
 import 'package:flutter_charts/charts/gap_pie_chart/gap_pie_chart.dart';
-import 'package:flutter_charts/charts/n_pie_chart.dart';
+import 'package:flutter_charts/charts/gap_pie_chart/n_pie_chart.dart';
 
 void main() {
   runApp(const MainApp());
@@ -60,10 +59,26 @@ class MainScreen extends StatelessWidget {
                     return _testCharts(
                       title: "Gap Pie Chart",
                       GapPieChart(
-                        radius: 100,
-                        dataset: dataset,
-                        strokeWidth: 14,
-                        gap: 16,
+                        radius: 120,
+                        dataset: [
+                          PieData(
+                            label: "Expense",
+                            value: 1000,
+                            color: Colors.black87,
+                          ),
+                          PieData(
+                            label: "Income",
+                            value: 500,
+                            color: Colors.deepOrangeAccent,
+                          ),
+                          PieData(
+                            label: "Income",
+                            value: 500,
+                            color: Colors.deepPurpleAccent,
+                          ),
+                        ],
+                        strokeWidth: 12,
+                        gap: 8,
                       ),
                     );
                   },

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:flutter_charts/charts/gap_pie_chart/dataset.dart';
 
 double radians(double degrees) {
   return degrees * (math.pi / 180.0);
@@ -12,6 +11,18 @@ final pieColors = [
   Colors.purple,
   Colors.black,
 ];
+
+class PieData {
+  final String label;
+  final double value;
+  final Color color;
+
+  PieData({
+    this.label = "",
+    required this.value,
+    this.color = Colors.black45,
+  });
+}
 
 class ArcData {
   final Color color;
@@ -27,8 +38,8 @@ class ArcData {
 
 class GapPieChart extends StatefulWidget {
   final double radius, textSize, strokeWidth, scale, gap;
-
-  final List<Data> dataset;
+  final Widget? body;
+  final List<PieData> dataset;
 
   const GapPieChart({
     super.key,
@@ -38,6 +49,7 @@ class GapPieChart extends StatefulWidget {
     required this.dataset,
     this.scale = 1,
     this.gap = 10,
+    this.body,
   });
 
   @override
@@ -48,6 +60,7 @@ class _GapPieChartState extends State<GapPieChart>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late List<ArcData> arcs;
+  late Widget data;
 
   @override
   void initState() {
@@ -59,8 +72,6 @@ class _GapPieChartState extends State<GapPieChart>
     final rem = 360 - (widget.dataset.length * widget.gap);
     final total = widget.dataset.fold(0.0, (a, data) => a + data.value) / rem;
 
-    final intervalGap = 1 / widget.dataset.length;
-
     double currentSum = 0.0;
     arcs = widget.dataset.indexed.map(
       (item) {
@@ -68,7 +79,7 @@ class _GapPieChartState extends State<GapPieChart>
         var startAngle = currentSum + (index * widget.gap);
         currentSum += data.value / total;
         return ArcData(
-          color: pieColors[index],
+          color: data.color,
           startAngle: startAngle - 90,
           sweepAngle: Tween<double>(
             begin: 0,
@@ -83,6 +94,55 @@ class _GapPieChartState extends State<GapPieChart>
       },
     ).toList();
     _animationController.forward();
+
+    var temp = widget.dataset.map((item) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  margin: const EdgeInsets.symmetric(horizontal: 10.0),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: item.color,
+                  ),
+                ),
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: item.color,
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              "${item.value}",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: item.color,
+              ),
+            )
+          ],
+        ),
+      );
+    }).toList();
+
+    data = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [for (var item in temp) item],
+    );
+
     super.initState();
   }
 
@@ -96,19 +156,28 @@ class _GapPieChartState extends State<GapPieChart>
   Widget build(BuildContext context) {
     return Transform.scale(
       scale: widget.scale,
-      child: SizedBox.fromSize(
-        size: Size.fromRadius(widget.radius),
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: _ProgressPainter(
-                strokeWidth: widget.strokeWidth,
-                arcs: arcs,
-              ),
-            );
-          },
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox.fromSize(
+            size: Size.fromRadius(widget.radius),
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: _ProgressPainter(
+                    strokeWidth: widget.strokeWidth,
+                    arcs: arcs,
+                  ),
+                  child: child,
+                );
+              },
+              child: widget.body,
+            ),
+          ),
+          const SizedBox(height: 8),
+          data
+        ],
       ),
     );
   }

@@ -81,8 +81,10 @@ class _NPieChartState extends State<NPieChart>
                 drawProgress: _draw.value,
                 lossProgress: _loss.value,
               ),
+              child: child,
             );
           },
+          child: Center(child: Text("Hello World")),
         ),
       ),
     );
